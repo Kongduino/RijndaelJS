@@ -1,0 +1,74 @@
+<html>
+  <head>
+  <script src="./rijndael.js"></script>
+  <style type="text/css">
+  input, textarea {
+    width: 70%;
+    margin: 5px;
+    font-size: 18px;
+  }
+  textarea {
+    height: 100px;
+  }
+  button {
+    margin: 5px;
+    font-size: 18px;
+  }
+  </style>
+  <script>
+    function encrypt() {
+      var enc = AES_ECB_encrypt(document.getElementById("text").value, document.getElementById("pass").value);
+      document.getElementById("text").value = btoa(enc);
+      document.getElementById("textLabel").innerHTML="ECB encrypted";
+      document.getElementById("ivLabel").innerHTML="Not using an IV:";
+      document.getElementById("myIV").value="";
+    }
+    function decrypt() {
+      var dec = AES_ECB_decrypt(document.getElementById("text").value, document.getElementById("pass").value);
+      document.getElementById("text").value = state2msg(dec);
+      document.getElementById("textLabel").innerHTML="ECB decrypted";
+      document.getElementById("ivLabel").innerHTML="Not using an IV:";
+      document.getElementById("myIV").value="";
+    }
+    function CBC_encrypt() {
+      var IV = generate16bytes();
+      document.getElementById("myIV").value = btoa(IV);
+      console.log("IV");
+      document.getElementById("ivLabel").innerHTML="Generated IV:";
+      hexDump(IV);
+      var enc = AES_CBC_encrypt_buffer(document.getElementById("text").value, document.getElementById("pass").value, IV);
+      hexDump(enc);
+      document.getElementById("text").value = btoa(enc);
+      document.getElementById("textLabel").innerHTML="CBC encrypted";
+    }
+    function CBC_decrypt() {
+      var tmp = atob(document.getElementById("text").value).split(',');
+      var j = tmp.length;
+      var enc = new Uint8Array(j);
+      for (i=0 ; i < j; i++) enc[i]=parseInt(tmp[i]);
+      console.log("enc, len", j);
+      hexDump(enc);
+      tmp = atob(document.getElementById("myIV").value).split(',');
+      document.getElementById("ivLabel").innerHTML="Using this IV:";
+      var IV = new Uint8Array(16);
+      for (i=0 ; i < 16; i++) IV[i]=parseInt(tmp[i]);
+      console.log("IV");
+      hexDump(IV);
+      var dec = AES_CBC_decrypt_buffer(enc, document.getElementById("pass").value, IV);
+      console.log("dec");
+      hexDump(dec);
+      document.getElementById("text").value = state2msg(dec);
+      document.getElementById("textLabel").innerHTML="CBC decrypted";
+    }
+  </script>
+  </head>
+  <body>
+    <h1>AES encrypt/decrypt online using Rijndael.js</h1>
+    <h3 id='textLabel'>text:</h3><textarea id='text' type='text'>some message</textarea>
+    <h3>password:</h3><input id='pass' type='text' value='yellow submarine'/>
+    <h3 id='ivLabel'>IV:</h3><textarea id='myIV' type='text'></textarea>
+    <p>
+      <button onclick="encrypt()">encrypt</button><button onclick="decrypt()">decrypt</button>
+      <button onclick="CBC_encrypt()">CBC enc</button><button onclick="CBC_decrypt()">CBC dec</button>
+    </p>
+</html>
